@@ -59,7 +59,10 @@ contract CommunityContract {
     }
 
     function registerUser() public notBanned {
-        require(userRoles[msg.sender] == Role.User, "User is already registered");
+        require(
+            userRoles[msg.sender] == Role.User,
+            "User is already registered"
+        );
         userRoles[msg.sender] = Role.User;
     }
 
@@ -94,7 +97,10 @@ contract CommunityContract {
 
     function appealDecision(uint256 _decisionIndex) public {
         Decision storage decision = decisions[_decisionIndex];
-        require(decision.user == msg.sender, "Only the affected user can appeal");
+        require(
+            decision.user == msg.sender,
+            "Only the affected user can appeal"
+        );
         require(!decision.appealed, "Decision already appealed");
 
         decision.appealed = true;
