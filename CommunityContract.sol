@@ -47,4 +47,14 @@ contract CommunityContract {
         require(!bannedUsers[msg.sender], "User is banned");
         _;
     }
+
+    function addAdmin(address _newAdmin) public onlyAdmin {
+        admins[_newAdmin] = true;
+        userRoles[_newAdmin] = Role.Admin;
+    }
+
+    function createRole(address _user, Role _role) public onlyAdmin {
+        require(_role != Role.User, "Cannot create User role");
+        userRoles[_user] = _role;
+    }
 }
