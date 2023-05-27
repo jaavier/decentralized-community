@@ -62,4 +62,33 @@ contract CommunityContract {
         require(userRoles[msg.sender] == Role.User, "User is already registered");
         userRoles[msg.sender] = Role.User;
     }
+
+    function banUser(address _user) public onlyAdmin {
+        bannedUsers[_user] = true;
+
+        Decision memory newDecision = Decision({
+            moderator: msg.sender,
+            user: _user,
+            action: ActionType.Ban,
+            timestamp: block.timestamp,
+            appealed: false
+        });
+        decisions.push(newDecision);
+    }
+
+    function assignRole(address _user, Role _role) public onlyAdmin {
+        require(_role != Role.User, "Cannot assign User role");
+        require(userRoles[_user] != Role.User, "User does not exist");
+
+        Decision memory newDecision = Decision({
+            moderator: msg.sender,
+            user: _user,
+            action: ActionType.AssignRole,
+            timestamp: block.timestamp,
+            appealed: false
+        });
+        decisions.push(newDecision);
+
+        userRoles[_user] = _role;
+    }
 }
