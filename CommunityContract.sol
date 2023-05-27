@@ -91,4 +91,12 @@ contract CommunityContract {
 
         userRoles[_user] = _role;
     }
+
+    function appealDecision(uint256 _decisionIndex) public {
+        Decision storage decision = decisions[_decisionIndex];
+        require(decision.user == msg.sender, "Only the affected user can appeal");
+        require(!decision.appealed, "Decision already appealed");
+
+        decision.appealed = true;
+    }
 }
