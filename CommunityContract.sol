@@ -57,4 +57,9 @@ contract CommunityContract {
         require(_role != Role.User, "Cannot create User role");
         userRoles[_user] = _role;
     }
+
+    function registerUser() public notBanned {
+        require(userRoles[msg.sender] == Role.User, "User is already registered");
+        userRoles[msg.sender] = Role.User;
+    }
 }
