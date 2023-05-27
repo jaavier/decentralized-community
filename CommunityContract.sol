@@ -9,13 +9,13 @@ contract CommunityContract {
         Collaborator,
         User
     }
-    
+
     enum ActionType {
         Ban,
         AssignRole,
         OtherAction
     }
-    
+
     address public admin;
     mapping(address => bool) public admins;
     mapping(address => bool) public bannedUsers;
@@ -63,17 +63,20 @@ contract CommunityContract {
         require(!bannedUsers[msg.sender], "User is banned");
         _;
     }
-    
+
     modifier onlyRegisteredUser() {
-        require(userRoles[msg.sender] != Role.User, "Only registered users can perform this action");
+        require(
+            userRoles[msg.sender] != Role.User,
+            "Only registered users can perform this action"
+        );
         _;
     }
-    
+
     modifier validDecisionIndex(uint256 _decisionIndex) {
         require(_decisionIndex < decisions.length, "Invalid decision index");
         _;
     }
-    
+
     modifier validAppealIndex(uint256 _appealIndex) {
         require(_appealIndex < appealVotes.length, "Invalid appeal index");
         _;
@@ -126,7 +129,10 @@ contract CommunityContract {
         userRoles[_user] = _role;
     }
 
-    function appealDecision(uint256 _decisionIndex) public validDecisionIndex(_decisionIndex) {
+    function appealDecision(uint256 _decisionIndex)
+        public
+        validDecisionIndex(_decisionIndex)
+    {
         Decision storage decision = decisions[_decisionIndex];
         require(
             decision.user == msg.sender,
@@ -139,7 +145,11 @@ contract CommunityContract {
         initializeAppealVote(_decisionIndex);
     }
 
-    function voteInAppeal(uint256 _appealIndex, bool _inFavor) public validAppealIndex(_appealIndex) onlyRegisteredUser {
+    function voteInAppeal(uint256 _appealIndex, bool _inFavor)
+        public
+        validAppealIndex(_appealIndex)
+        onlyRegisteredUser
+    {
         AppealVote storage appealVote = appealVotes[_appealIndex];
         require(!hasVoted[msg.sender][_appealIndex], "User has already voted");
 
@@ -153,7 +163,12 @@ contract CommunityContract {
         updateAppealVoteResult(_appealIndex);
     }
 
-    function getAppealVoteResults(uint256 _appealIndex) public view validAppealIndex(_appealIndex) returns (uint256, uint256) {
+    function getAppealVoteResults(uint256 _appealIndex)
+        public
+        view
+        validAppealIndex(_appealIndex)
+        returns (uint256, uint256)
+    {
         VoteResult storage result = appealVoteResults[_appealIndex];
         return (result.votesInFavor, result.votesAgainst);
     }
