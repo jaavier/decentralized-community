@@ -45,13 +45,12 @@ contract CommunityContract {
 
     mapping(address => mapping(uint256 => bool)) public hasVoted;
     address[] public userList;
-    address[] public adminList;
 
     constructor() {
         admin = msg.sender;
         admins[msg.sender] = true;
         userRoles[msg.sender] = Role.Admin;
-        adminList.push(msg.sender);
+        userList.push(msg.sender);
     }
 
     modifier onlyAdmin() {
@@ -88,6 +87,7 @@ contract CommunityContract {
     function addAdmin(address _newAdmin) public onlyAdmin {
         admins[_newAdmin] = true;
         userRoles[_newAdmin] = Role.Admin;
+        userList.push(_newAdmin);
     }
 
     function createRole(address _user, Role _role) public onlyAdmin {
@@ -105,6 +105,7 @@ contract CommunityContract {
     }
 
     function banUser(address _user) public onlyAdmin {
+
         bannedUsers[_user] = true;
 
         Decision memory newDecision = Decision({
@@ -193,10 +194,6 @@ contract CommunityContract {
         VoteResult storage result = appealVoteResults[_appealIndex];
         result.votesInFavor = appealVote.votesInFavor;
         result.votesAgainst = appealVote.votesAgainst;
-    }
-
-    function getAdmins() public view returns (address[] memory) {
-        return adminList;
     }
 
     function getUsers(Role _role) public view returns (address[] memory) {
