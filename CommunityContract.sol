@@ -44,11 +44,13 @@ contract CommunityContract {
     }
 
     mapping(address => mapping(uint256 => bool)) public hasVoted;
+    address[] public userList;
 
     constructor() {
         admin = msg.sender;
         admins[msg.sender] = true;
         userRoles[msg.sender] = Role.Admin;
+        userList.push(msg.sender);
     }
 
     modifier onlyAdmin() {
@@ -85,6 +87,7 @@ contract CommunityContract {
     function addAdmin(address _newAdmin) public onlyAdmin {
         admins[_newAdmin] = true;
         userRoles[_newAdmin] = Role.Admin;
+        userList.push(_newAdmin);
     }
 
     function createRole(address _user, Role _role) public onlyAdmin {
@@ -94,13 +97,15 @@ contract CommunityContract {
 
     function registerUser() public notBanned {
         require(
-            userRoles[msg.sender] == Role.User,
+            userRoles[msg.sender] != Role.User,
             "User is already registered"
         );
         userRoles[msg.sender] = Role.User;
+        userList.push(msg.sender);
     }
 
     function banUser(address _user) public onlyAdmin {
+        require(userRoles[_user] != Role.Admin, "Cannot ban admin");
         bannedUsers[_user] = true;
 
         Decision memory newDecision = Decision({
@@ -116,6 +121,7 @@ contract CommunityContract {
     function assignRole(address _user, Role _role) public onlyAdmin {
         require(_role != Role.User, "Cannot assign User role");
         require(userRoles[_user] != Role.User, "User does not exist");
+        require(userRoles[_user] != Role.Admin, "Cannot change admin role");
 
         Decision memory newDecision = Decision({
             moderator: msg.sender,
@@ -189,5 +195,25 @@ contract CommunityContract {
         VoteResult storage result = appealVoteResults[_appealIndex];
         result.votesInFavor = appealVote.votesInFavor;
         result.votesAgainst = appealVote.votesAgainst;
+    }
+
+    function getUsers(Role _role) public view returns (address[] memory) {
+        uint256 numUsers = userList.length;
+        address[] memory addresses = new address[](numUsers);
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < numUsers; i++) {
+            if (userRoles[userList[i]] == _role) {
+                addresses[count] = userList[i];
+                count++;
+            }
+        }
+
+        // Redimensionar el arreglo para eliminar las posiciones no utilizadas
+        assembly {
+            mstore(addresses, count)
+        }
+
+        return addresses;
     }
 }
