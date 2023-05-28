@@ -44,11 +44,14 @@ contract CommunityContract {
     }
 
     mapping(address => mapping(uint256 => bool)) public hasVoted;
+    address[] public userList;
+    address[] public adminList;
 
     constructor() {
         admin = msg.sender;
         admins[msg.sender] = true;
         userRoles[msg.sender] = Role.Admin;
+        adminList.push(msg.sender);
     }
 
     modifier onlyAdmin() {
@@ -98,6 +101,7 @@ contract CommunityContract {
             "User is already registered"
         );
         userRoles[msg.sender] = Role.User;
+        userList.push(msg.sender);
     }
 
     function banUser(address _user) public onlyAdmin {
@@ -189,5 +193,29 @@ contract CommunityContract {
         VoteResult storage result = appealVoteResults[_appealIndex];
         result.votesInFavor = appealVote.votesInFavor;
         result.votesAgainst = appealVote.votesAgainst;
+    }
+
+    function getAdmins() public view returns (address[] memory) {
+        return adminList;
+    }
+
+    function getUsers(Role _role) public view returns (address[] memory) {
+        uint256 numUsers = userList.length;
+        address[] memory addresses = new address[](numUsers);
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < numUsers; i++) {
+            if (userRoles[userList[i]] == _role) {
+                addresses[count] = userList[i];
+                count++;
+            }
+        }
+
+        // Redimensionar el arreglo para eliminar las posiciones no utilizadas
+        assembly {
+            mstore(addresses, count)
+        }
+
+        return addresses;
     }
 }
