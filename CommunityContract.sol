@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 contract CommunityContract {
     enum Role {
+        Visitor,
         Admin,
         Moderator,
         GlobalModerator,
@@ -97,7 +98,7 @@ contract CommunityContract {
 
     function registerUser() public notBanned {
         require(
-            userRoles[msg.sender] != Role.User,
+            userRoles[msg.sender] == Role.Visitor,
             "User is already registered"
         );
         userRoles[msg.sender] = Role.User;
