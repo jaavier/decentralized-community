@@ -97,7 +97,7 @@ contract CommunityContract {
 
     function registerUser() public notBanned {
         require(
-            userRoles[msg.sender] == Role.User,
+            userRoles[msg.sender] != Role.User,
             "User is already registered"
         );
         userRoles[msg.sender] = Role.User;
@@ -121,6 +121,7 @@ contract CommunityContract {
     function assignRole(address _user, Role _role) public onlyAdmin {
         require(_role != Role.User, "Cannot assign User role");
         require(userRoles[_user] != Role.User, "User does not exist");
+        require(userRoles[_user] != Role.Admin, "Cannot change admin role");
 
         Decision memory newDecision = Decision({
             moderator: msg.sender,
