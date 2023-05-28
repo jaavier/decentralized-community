@@ -105,7 +105,7 @@ contract CommunityContract {
     }
 
     function banUser(address _user) public onlyAdmin {
-
+        require(userRoles[_user] != Role.Admin, "Cannot ban admin");
         bannedUsers[_user] = true;
 
         Decision memory newDecision = Decision({
