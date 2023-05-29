@@ -6,11 +6,11 @@ import "./CommonContract.sol";
 contract UsersContract is CommonContract {
     function registerUser() public notBanned {
         require(
-            keccak256(bytes(userRoles[msg.sender])) ==
+            keccak256(bytes(roleLevels[userRoles[msg.sender]])) ==
                 keccak256(bytes("Visitor")),
             "User is already registered"
         );
-        userRoles[msg.sender] = "User";
+        userRoles[msg.sender] = 1;
         userList.push(msg.sender);
     }
 
@@ -25,7 +25,7 @@ contract UsersContract is CommonContract {
 
         for (uint256 i = 0; i < numUsers; i++) {
             if (
-                keccak256(bytes(userRoles[userList[i]])) ==
+                keccak256(bytes(roleLevels[userRoles[userList[i]]])) ==
                 keccak256(bytes(_role))
             ) {
                 addresses[count] = userList[i];

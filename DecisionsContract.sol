@@ -113,6 +113,54 @@ contract DecisionsContract is CommonContract {
         result.votesAgainst = appealVote.votesAgainst;
     }
 
+    function initiateVote(
+        address _user,
+        uint256 newRole,
+        bool _isPromotion
+    ) public onlyUser {
+        require(msg.sender != _user, "User cannot vote for itself");
+        require(newRole < roleLevels.length && newRole > 0, "Invalid role index");
+
+        uint256 actualRole = userRoles[msg.sender];
+
+        if (_isPromotion) {
+            require(
+                newRole > actualRole && newRole < roleLevels.length,
+                "New role must be greater than the actual role"
+            );
+        } else {
+            require(
+                newRole < actualRole && newRole > 0,
+                "New role must be less than the actual role"
+            );
+        }
+        string memory _newRole = roleLevels[newRole];
+
+        require(roles[_newRole], "Role does not exist");
+        require(
+            userRoles[_user] != newRole,
+            "User already has the role"
+        );
+
+        ActionType actionType;
+        if (_isPromotion) {
+            actionType = ActionType.PromoteUser;
+        } else {
+            // it should have the same role to demote
+            actionType = ActionType.DemoteUser;
+        }
+
+        Decision memory newDecision = Decision({
+            moderator: msg.sender,
+            user: _user,
+            action: actionType,
+            timestamp: block.timestamp,
+            appealed: false,
+            appealDeadline: block.timestamp + 1 weeks
+        });
+        decisions.push(newDecision);
+    }
+
     function getDecision(uint256 _decisionIndex)
         public
         view
