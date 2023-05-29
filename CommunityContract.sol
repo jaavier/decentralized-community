@@ -1,58 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-contract CommunityContract {
-    enum Role {
-        Visitor,
-        Admin,
-        Moderator,
-        GlobalModerator,
-        Collaborator,
-        User
-    }
+import "./CommonContract.sol";
+import "./DecisionsContract.sol";
+import "./UsersContract.sol";
 
-    enum ActionType {
-        Ban,
-        AssignRole,
-        OtherAction
-    }
-
+contract CommunityContract is CommonContract, DecisionsContract, UsersContract {
     address public admin;
     mapping(address => bool) public admins;
-    mapping(address => bool) public bannedUsers;
-    mapping(address => Role) public userRoles;
-    Decision[] public decisions;
-    AppealVote[] public appealVotes;
-    mapping(uint256 => VoteResult) public appealVoteResults;
-
-    struct Decision {
-        address moderator;
-        address user;
-        ActionType action;
-        uint256 timestamp;
-        bool appealed;
-    }
-
-    struct AppealVote {
-        uint256 decisionIndex;
-        uint256 votesInFavor;
-        uint256 votesAgainst;
-    }
-
-    struct VoteResult {
-        uint256 votesInFavor;
-        uint256 votesAgainst;
-    }
-
-    mapping(address => mapping(uint256 => bool)) public hasVoted;
-    address[] public userList;
-
-    constructor() {
-        admin = msg.sender;
-        admins[msg.sender] = true;
-        userRoles[msg.sender] = Role.Admin;
-        userList.push(msg.sender);
-    }
 
     modifier onlyAdmin() {
         require(
@@ -62,27 +17,11 @@ contract CommunityContract {
         _;
     }
 
-    modifier notBanned() {
-        require(!bannedUsers[msg.sender], "User is banned");
-        _;
-    }
-
-    modifier onlyRegisteredUser() {
-        require(
-            userRoles[msg.sender] != Role.User,
-            "Only registered users can perform this action"
-        );
-        _;
-    }
-
-    modifier validDecisionIndex(uint256 _decisionIndex) {
-        require(_decisionIndex < decisions.length, "Invalid decision index");
-        _;
-    }
-
-    modifier validAppealIndex(uint256 _appealIndex) {
-        require(_appealIndex < appealVotes.length, "Invalid appeal index");
-        _;
+    constructor() {
+        admin = msg.sender;
+        admins[msg.sender] = true;
+        userRoles[msg.sender] = Role.Admin;
+        userList.push(msg.sender);
     }
 
     function addAdmin(address _newAdmin) public onlyAdmin {
@@ -94,29 +33,6 @@ contract CommunityContract {
     function createRole(address _user, Role _role) public onlyAdmin {
         require(_role != Role.User, "Cannot create User role");
         userRoles[_user] = _role;
-    }
-
-    function registerUser() public notBanned {
-        require(
-            userRoles[msg.sender] == Role.Visitor,
-            "User is already registered"
-        );
-        userRoles[msg.sender] = Role.User;
-        userList.push(msg.sender);
-    }
-
-    function banUser(address _user) public onlyAdmin {
-        require(userRoles[_user] != Role.Admin, "Cannot ban admin");
-        bannedUsers[_user] = true;
-
-        Decision memory newDecision = Decision({
-            moderator: msg.sender,
-            user: _user,
-            action: ActionType.Ban,
-            timestamp: block.timestamp,
-            appealed: false
-        });
-        decisions.push(newDecision);
     }
 
     function assignRole(address _user, Role _role) public onlyAdmin {
@@ -136,85 +52,17 @@ contract CommunityContract {
         userRoles[_user] = _role;
     }
 
-    function appealDecision(uint256 _decisionIndex)
-        public
-        validDecisionIndex(_decisionIndex)
-    {
-        Decision storage decision = decisions[_decisionIndex];
-        require(
-            decision.user == msg.sender,
-            "Only the affected user can appeal"
-        );
-        require(!decision.appealed, "Decision already appealed");
+    function banUser(address _user) public onlyAdmin {
+        require(userRoles[_user] != Role.Admin, "Cannot ban admin");
+        bannedUsers[_user] = true;
 
-        decision.appealed = true;
-
-        initializeAppealVote(_decisionIndex);
-    }
-
-    function voteInAppeal(uint256 _appealIndex, bool _inFavor)
-        public
-        validAppealIndex(_appealIndex)
-        onlyRegisteredUser
-    {
-        AppealVote storage appealVote = appealVotes[_appealIndex];
-        require(!hasVoted[msg.sender][_appealIndex], "User has already voted");
-
-        if (_inFavor) {
-            appealVote.votesInFavor++;
-        } else {
-            appealVote.votesAgainst++;
-        }
-        hasVoted[msg.sender][_appealIndex] = true;
-
-        updateAppealVoteResult(_appealIndex);
-    }
-
-    function getAppealVoteResults(uint256 _appealIndex)
-        public
-        view
-        validAppealIndex(_appealIndex)
-        returns (uint256, uint256)
-    {
-        VoteResult storage result = appealVoteResults[_appealIndex];
-        return (result.votesInFavor, result.votesAgainst);
-    }
-
-    function initializeAppealVote(uint256 _decisionIndex) internal {
-        AppealVote memory newAppealVote;
-        newAppealVote.decisionIndex = _decisionIndex;
-        newAppealVote.votesInFavor = 0;
-        newAppealVote.votesAgainst = 0;
-
-        appealVotes.push(newAppealVote);
-
-        updateAppealVoteResult(appealVotes.length - 1);
-    }
-
-    function updateAppealVoteResult(uint256 _appealIndex) internal {
-        AppealVote storage appealVote = appealVotes[_appealIndex];
-        VoteResult storage result = appealVoteResults[_appealIndex];
-        result.votesInFavor = appealVote.votesInFavor;
-        result.votesAgainst = appealVote.votesAgainst;
-    }
-
-    function getUsers(Role _role) public view returns (address[] memory) {
-        uint256 numUsers = userList.length;
-        address[] memory addresses = new address[](numUsers);
-        uint256 count = 0;
-
-        for (uint256 i = 0; i < numUsers; i++) {
-            if (userRoles[userList[i]] == _role) {
-                addresses[count] = userList[i];
-                count++;
-            }
-        }
-
-        // Redimensionar el arreglo para eliminar las posiciones no utilizadas
-        assembly {
-            mstore(addresses, count)
-        }
-
-        return addresses;
+        Decision memory newDecision = Decision({
+            moderator: msg.sender,
+            user: _user,
+            action: ActionType.Ban,
+            timestamp: block.timestamp,
+            appealed: false
+        });
+        decisions.push(newDecision);
     }
 }
