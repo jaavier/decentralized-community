@@ -4,7 +4,7 @@ Smart Contract for managing a web3 community.
 
 ## Description
 
-CommunityContract is a Solidity smart contract designed to facilitate the management of an online community within the web3 ecosystem. It provides functionality for role assignment, user registration, moderation actions, and appeal mechanisms.
+CommunityContract is a Solidity smart contract designed to facilitate the management of an online community within the web3 ecosystem. It provides functionality for role assignment, user registration, moderation actions, appeal mechanisms, and decision tracking.
 
 The contract allows for the creation of different roles such as Admin, Moderator, Global Moderator, Collaborator, and User. The admin, who initially deploys the contract, has the authority to add other admins, create roles, ban users, and assign roles to community members. Users can register themselves within the community and participate according to their assigned roles.
 
@@ -72,6 +72,22 @@ Allows the affected user to appeal a decision made against them.
 
 - `_decisionIndex`: The index of the decision to be appealed.
 
+### getAdmins
+
+```solidity
+function getAdmins() public view returns (address[] memory)
+```
+
+Returns an array of all the admins in the community.
+
+### getUsers
+
+```solidity
+function getUsers(Role _role) public view returns (address[] memory)
+```
+
+Returns an array of users with the specified role.
+
 ## Usage
 
 1. Deploy the CommunityContract smart contract on the desired Ethereum network.
@@ -82,6 +98,8 @@ Allows the affected user to appeal a decision made against them.
 6. Admins can use the `banUser` function to ban users from the community.
 7. Admins can assign roles to users using the `assignRole` function.
 8. Users can appeal decisions made against them by calling the `appealDecision` function.
+9. Use the `getAdmins` function to retrieve the list of admins in the community.
+10. Use the `getUsers` function to retrieve the list of users with a specific role.
 
 ## License
 
