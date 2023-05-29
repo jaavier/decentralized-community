@@ -22,6 +22,7 @@ contract CommonContract {
         address user;
         ActionType action;
         uint256 timestamp;
+        uint256 appealDeadline;
         bool appealed;
     }
 
@@ -49,7 +50,19 @@ contract CommonContract {
         _;
     }
 
+    modifier onlyUser() {
+        require(
+            userRoles[msg.sender] == Role.User ||
+                userRoles[msg.sender] == Role.Admin ||
+                userRoles[msg.sender] == Role.Collaborator ||
+                userRoles[msg.sender] == Role.Moderator ||
+                userRoles[msg.sender] == Role.GlobalModerator
+        );
+        _;
+    }
+
     address[] public userList;
+    uint256 quorum = (userList.length / 2) + 1;
     mapping(address => Role) public userRoles;
     mapping(address => bool) public bannedUsers;
 }
