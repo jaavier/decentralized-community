@@ -115,13 +115,13 @@ contract DecisionsContract is CommonContract {
 
     function initiateVote(
         address _user,
-        uint256 newRole,
-        bool _isPromotion
+        uint256 newRole
     ) public onlyUser {
         require(msg.sender != _user, "User cannot vote for itself");
         require(newRole < roleLevels.length && newRole > 0, "Invalid role index");
 
         uint256 actualRole = userRoles[msg.sender];
+        bool _isPromotion = newRole > actualRole;
 
         if (_isPromotion) {
             require(
