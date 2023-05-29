@@ -24,15 +24,13 @@ contract DecisionsContract is CommonContract {
     function appealDecision(uint256 _decisionIndex)
         public
         validDecisionIndex(_decisionIndex)
+        notBanned()
     {
         Decision storage decision = decisions[_decisionIndex];
-        require(
-            decision.user == msg.sender,
-            "Only the affected user can appeal"
-        );
         require(!decision.appealed, "Decision already appealed");
 
         decision.appealed = true;
+        decision.appealDeadline = block.timestamp + 1 weeks;
 
         initializeAppealVote(_decisionIndex);
     }
@@ -81,5 +79,41 @@ contract DecisionsContract is CommonContract {
         VoteResult storage result = appealVoteResults[_appealIndex];
         result.votesInFavor = appealVote.votesInFavor;
         result.votesAgainst = appealVote.votesAgainst;
+    }
+
+    function getDecision(uint256 _decisionIndex)
+        public
+        view
+        validDecisionIndex(_decisionIndex)
+        onlyUser()
+        returns (address, address, CommonContract.ActionType, uint256, bool)
+    {
+        Decision storage decision = decisions[_decisionIndex];
+        return (
+            decision.moderator,
+            decision.user,
+            decision.action,
+            decision.timestamp,
+            decision.appealed
+        );
+    }
+
+    function getNumDecisions() public view returns (uint256) {
+        return decisions.length;
+    }
+
+    function getAppeal(uint256 _appealIndex)
+        public
+        view
+        validAppealIndex(_appealIndex)
+        onlyUser()
+        returns (uint256, uint256, uint256)
+    {
+        AppealVote storage appeal = appealVotes[_appealIndex];
+        return (appeal.decisionIndex, appeal.votesInFavor, appeal.votesAgainst);
+    }
+
+    function getNumAppeals() public view returns (uint256) {
+        return appealVotes.length;
     }
 }

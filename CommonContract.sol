@@ -22,6 +22,7 @@ contract CommonContract {
         address user;
         ActionType action;
         uint256 timestamp;
+        uint256 appealDeadline;
         bool appealed;
     }
 
@@ -46,6 +47,17 @@ contract CommonContract {
 
     modifier notBanned() {
         require(!bannedUsers[msg.sender], "User is banned");
+        _;
+    }
+
+    modifier onlyUser() {
+        require(
+            userRoles[msg.sender] == Role.User ||
+                userRoles[msg.sender] == Role.Admin ||
+                userRoles[msg.sender] == Role.Collaborator ||
+                userRoles[msg.sender] == Role.Moderator ||
+                userRoles[msg.sender] == Role.GlobalModerator
+        );
         _;
     }
 
