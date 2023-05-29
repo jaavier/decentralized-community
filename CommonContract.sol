@@ -62,6 +62,7 @@ contract CommonContract {
     }
 
     address[] public userList;
+    uint256 quorum = (userList.length / 2) + 1;
     mapping(address => Role) public userRoles;
     mapping(address => bool) public bannedUsers;
 }
