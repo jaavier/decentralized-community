@@ -95,12 +95,10 @@ contract DecisionsContract is CommonContract {
             // Reset the decision as it has been processed
             decision.appealed = false;
             if (decision.action == ActionType.Ban) {
-                userRoles[decision.user] = Role.User;
                 bannedUsers[decision.user] = false;
-            } 
-            // else if (decision.action == ActionType.AssignRole) {
-            //     userRoles[decision.user] = Role.User;
-            // }
+            } else if (decision.action == ActionType.AssignRole) {
+                userRoles[decision.user] = previousUserRoles[decision.user];
+            }
             delete appealVotes[_decisionIndex];
             delete appealVoteResults[_decisionIndex];
         } else {

@@ -20,25 +20,35 @@ contract CommunityContract is CommonContract, DecisionsContract, UsersContract {
     constructor() {
         admin = msg.sender;
         admins[msg.sender] = true;
-        userRoles[msg.sender] = Role.Admin;
+        userRoles[msg.sender] = "Admin";
         userList.push(msg.sender);
+        initializeRoles();
     }
 
     function addAdmin(address _newAdmin) public onlyAdmin {
         admins[_newAdmin] = true;
-        userRoles[_newAdmin] = Role.Admin;
+        userRoles[_newAdmin] = "Admin";
         userList.push(_newAdmin);
     }
 
-    function createRole(address _user, Role _role) public onlyAdmin {
-        require(_role != Role.User, "Cannot create User role");
-        userRoles[_user] = _role;
+    function createRole(string memory _role) public onlyAdmin {
+        require(roles[_role] == false, "Role already exists");
+        roles[_role] = true;
     }
 
-    function assignRole(address _user, Role _role) public onlyAdmin {
-        require(_role != Role.User, "Cannot assign User role");
-        require(userRoles[_user] != Role.User, "User does not exist");
-        require(userRoles[_user] != Role.Admin, "Cannot change admin role");
+    function assignRole(address _user, string memory _role) public onlyAdmin {
+        require(
+            keccak256(bytes(_role)) != keccak256(bytes("User")),
+            "Cannot assign User role"
+        );
+        require(
+            keccak256(bytes(userRoles[_user])) != keccak256(bytes("User")),
+            "User does not exist"
+        );
+        require(
+            keccak256(bytes(userRoles[_user])) != keccak256(bytes("Admin")),
+            "Cannot change admin role"
+        );
 
         Decision memory newDecision = Decision({
             moderator: msg.sender,
@@ -50,11 +60,15 @@ contract CommunityContract is CommonContract, DecisionsContract, UsersContract {
         });
         decisions.push(newDecision);
 
+        previousUserRoles[_user] = userRoles[_user];
         userRoles[_user] = _role;
     }
 
     function banUser(address _user) public onlyAdmin {
-        require(userRoles[_user] != Role.Admin, "Cannot ban admin");
+        require(
+            keccak256(bytes(userRoles[_user])) != keccak256("Admin"),
+            "Cannot ban admin"
+        );
         bannedUsers[_user] = true;
 
         Decision memory newDecision = Decision({

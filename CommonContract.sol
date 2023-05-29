@@ -2,15 +2,6 @@
 pragma solidity ^0.8.0;
 
 contract CommonContract {
-    enum Role {
-        Visitor,
-        Admin,
-        Moderator,
-        GlobalModerator,
-        Collaborator,
-        User
-    }
-
     enum ActionType {
         Ban,
         AssignRole,
@@ -39,7 +30,8 @@ contract CommonContract {
 
     modifier onlyRegisteredUser() {
         require(
-            userRoles[msg.sender] != Role.User,
+            keccak256(bytes(userRoles[msg.sender])) !=
+                keccak256(bytes("Visitor")),
             "Only registered users can perform this action"
         );
         _;
@@ -50,19 +42,28 @@ contract CommonContract {
         _;
     }
 
+    function isUserAllowed(address _user) internal view returns (bool) {
+        return roles[userRoles[_user]] == true;
+    }
+
     modifier onlyUser() {
-        require(
-            userRoles[msg.sender] == Role.User ||
-                userRoles[msg.sender] == Role.Admin ||
-                userRoles[msg.sender] == Role.Collaborator ||
-                userRoles[msg.sender] == Role.Moderator ||
-                userRoles[msg.sender] == Role.GlobalModerator
-        );
+        require(isUserAllowed(msg.sender), "User is not allowed");
         _;
     }
 
     address[] public userList;
     uint256 quorum = (userList.length / 2) + 1;
-    mapping(address => Role) public userRoles;
+    mapping(address => string) public userRoles;
     mapping(address => bool) public bannedUsers;
+    mapping(string => bool) public roles;
+    mapping(address => string) public previousUserRoles;
+
+    function initializeRoles() internal {
+        roles["Visitor"] = true;
+        roles["Admin"] = true;
+        roles["Moderator"] = true;
+        roles["GlobalModerator"] = true;
+        roles["Collaborator"] = true;
+        roles["User"] = true;
+    }
 }
