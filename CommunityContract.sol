@@ -45,7 +45,8 @@ contract CommunityContract is CommonContract, DecisionsContract, UsersContract {
             user: _user,
             action: ActionType.AssignRole,
             timestamp: block.timestamp,
-            appealed: false
+            appealed: false,
+            appealDeadline: 0
         });
         decisions.push(newDecision);
 
@@ -61,7 +62,8 @@ contract CommunityContract is CommonContract, DecisionsContract, UsersContract {
             user: _user,
             action: ActionType.Ban,
             timestamp: block.timestamp,
-            appealed: false
+            appealed: false,
+            appealDeadline: 0
         });
         decisions.push(newDecision);
     }
