@@ -6,14 +6,18 @@ import "./CommonContract.sol";
 contract UsersContract is CommonContract {
     function registerUser() public notBanned {
         require(
-            userRoles[msg.sender] == Role.Visitor,
+            userRoles[msg.sender] == 0,
             "User is already registered"
         );
-        userRoles[msg.sender] = Role.User;
+        userRoles[msg.sender] = 1;
         userList.push(msg.sender);
     }
 
-    function getUsers(Role _role) public view returns (address[] memory) {
+    function getUsers(uint256 _role)
+        public
+        view
+        returns (address[] memory)
+    {
         uint256 numUsers = userList.length;
         address[] memory addresses = new address[](numUsers);
         uint256 count = 0;
